@@ -12,9 +12,6 @@ const char *topic2 = "esp32/test1";
 const char *mqtt_username = "xyvielyons";
 const char *mqtt_password = "XyvieLyons7@gmail.com";
 
-#define led3  32
-#define led2  35
-#define led1  34
 #define flowMeterPin 33  // Flow meter signal wire connected to pin 2
 #define PULSES_PER_LITER 450  // Pulses per liter (typical for YF-S201)
 
@@ -41,8 +38,7 @@ void setup() {
  pinMode(flowMeterPin, INPUT_PULLUP);  // Set flow meter pin as input
  attachInterrupt(digitalPinToInterrupt(flowMeterPin), pulseCounter, FALLING);  // Attach interrupt to count pulses
  pinMode(2,OUTPUT);
- pinMode(led2,OUTPUT);
- pinMode(led3,OUTPUT);
+
 
  // connecting to a WiFi network
  WiFi.begin(ssid, password);
@@ -82,7 +78,7 @@ void loop() {
   unsigned long currentTime = millis();
 
   // Check if a second has passed
-  if (dispensing && currentTime - lastTime >= 1000) {
+  if (dispensing && currentTime - lastTime >= 500) {
     lastTime = currentTime;
 
     // Calculate flow rate (L/min) based on pulse count
@@ -147,12 +143,7 @@ void callback(char *topic, byte *payload, unsigned int length){
     digitalWrite(2,LOW);
     Serial.print("pump off");
   }
-  if(messageTemp == "hello2"){
-    digitalWrite(led2,HIGH);
-  }
-  if(messageTemp == "hello3"){
-    digitalWrite(led3,HIGH);
-  }
+
   // Parse the MQTT message
   if (messageTemp.startsWith("dispense:")) {
     String litersToDispense = messageTemp.substring(9);  // Get the liters to dispense from the message
