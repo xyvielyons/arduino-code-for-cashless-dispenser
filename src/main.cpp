@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 void callback(char *topic, byte *payload, unsigned int length);
-const char* ssid = "xavier";
+const char* ssid = "xyvie";
 const char* password = "xyvielyonsmbugua";
 
 const char* mqtt_server = "broker.hivemq.com";
@@ -11,6 +11,7 @@ const char *topic = "esp32/pumpstatus";
 const char *topic2 = "esp32/test1";
 const char *mqtt_username = "xyvielyons";
 const char *mqtt_password = "XyvieLyons7@gmail.com";
+const char *healthTopic = "esp32/health";  // Health check topic
 
 #define flowMeterPin 33  // Flow meter signal wire connected to pin 2
 #define PULSES_PER_LITER 450  // Pulses per liter (typical for YF-S201)
@@ -66,7 +67,7 @@ void setup() {
  }
 
   client.subscribe(topic);
-  client.publish(topic2, "Hi EMQX I'm ESP32");
+  client.publish(topic2, "Hi I'm ESP32 at your service");
 
 
 ;}
@@ -78,7 +79,7 @@ void loop() {
   unsigned long currentTime = millis();
 
   // Check if a second has passed
-  if (dispensing && currentTime - lastTime >= 500) {
+  if (dispensing && currentTime - lastTime >= 100) {
     lastTime = currentTime;
 
     // Calculate flow rate (L/min) based on pulse count
@@ -99,7 +100,7 @@ void loop() {
     String flowRateStr = String(flowRate, 2);
 
     // Create a message to send via MQTT
-    String message = "Flow Rate: " + flowRateStr + " L/min, Total Liters: " + totalLitersStr;
+    String message = "Flow Rate: " + flowRateStr + " L/min, Total Liters: " + totalLitersStr + " TargetLitres: " + targetLitres;
 
     // Print to Serial for debugging
     Serial.println(message);
@@ -112,10 +113,17 @@ void loop() {
       dispensing = false;
       pulseCount = 0;
       Serial.println("Target volume reached, pump off.");
-      client.publish(topic2,"finished vending");
     }
     // Reset pulse count for the next second
     pulseCount = 0;
+  }
+
+  //healthcheckevery 10 seconds
+    static unsigned long healthCheckTime = 0;
+    if (currentTime - healthCheckTime >= 10000) {
+    healthCheckTime = currentTime;
+    client.publish(healthTopic, "ESP32 is healthy");
+    Serial.println("Health check message sent");
   }
 
 
